@@ -154,6 +154,8 @@ with dai.Device(pipeline) as device:
         if trackletsIn is not None:
             counter.new_tracklets(trackletsIn.tracklets)
 
+
+
         # Crop only the corridor:
         
         cropped = depthFrame[DETECTION_ROI[1]:DETECTION_ROI[3], DETECTION_ROI[0]:DETECTION_ROI[2]]
