@@ -5,7 +5,7 @@ import numpy as np
 from depthai_sdk import Replay
 import argparse
 
-DETECTION_ROI = (200,300,1000,700)
+DETECTION_ROI = (200,100,1100,700)
 #(200,100,1000,700) # Specific to `depth-person-counting-01` recording
 
 class TextHelper:
