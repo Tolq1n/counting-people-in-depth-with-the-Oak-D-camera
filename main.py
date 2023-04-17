@@ -36,9 +36,11 @@ class PeopleCounter:
         self.tracking = {}
         self.lost_cnt = {}
         self.people_counter = [0,0,0,0] # Up, Down, Left, Right
+        self.total = 0
+        self.score = 0
 
     def __str__(self) -> str:
-        return f"Left: {self.people_counter[2]}, Right: {self.people_counter[3]}"
+        return f"Left: {self.people_counter[2]}, Right: {self.people_counter[3]}, Total: {self.total}, Score: {self.score}"
 
     def tracklet_removed(self, coords1, coords2):
         deltaX = coords2[0] - coords1[0]
@@ -46,10 +48,13 @@ class PeopleCounter:
 
         if THRESH_DIST_DELTA < abs(deltaX):
             self.people_counter[2 if 0 > deltaX else 3] += 1
-            direction = "left" if 0 > deltaX else "right"
-            print(f"left: {self.people_counter[2]}, right: {self.people_counter[3]}")
-            #print(f"Person moved {direction}")
-
+            
+            if 0 > deltaX: 
+                self.score += 1
+            else:
+                self.score -= 1
+            
+            self.total += 1
     
     def get_centroid(self, roi):
         x1 = roi.topLeft().x
