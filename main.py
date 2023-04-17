@@ -5,7 +5,8 @@ import numpy as np
 from depthai_sdk import Replay
 import argparse
 
-DETECTION_ROI = (200,100,1200,700) # Specific to `depth-person-counting-01` recording
+DETECTION_ROI = (200,300,1000,700)
+#(200,100,1000,700) # Specific to `depth-person-counting-01` recording
 
 class TextHelper:
     def __init__(self) -> None:
@@ -17,7 +18,7 @@ class TextHelper:
         cv2.putText(frame, text, coords, self.text_type, 1.3, self.bg_color, 5, self.line_type)
         cv2.putText(frame, text, coords, self.text_type, 1.3, self.color, 2, self.line_type)
         return frame
-    def rectangle(self, frame, topLeft,bottomRight, size=1.1):
+    def rectangle(self, frame, topLeft,bottomRight, size=1.):
         cv2.rectangle(frame, topLeft, bottomRight, self.bg_color, int(size*4))
         cv2.rectangle(frame, topLeft, bottomRight, self.color, int(size))
         return frame
@@ -47,7 +48,7 @@ class PeopleCounter:
             self.people_counter[2 if 0 > deltaX else 3] += 1
             direction = "left" if 0 > deltaX else "right"
             print(f"left: {self.people_counter[2]}, right: {self.people_counter[3]}")
-            print(f"Person moved {direction}")
+            #print(f"Person moved {direction}")
 
     
     def get_centroid(self, roi):
@@ -193,7 +194,7 @@ with dai.Device(pipeline) as device:
                 dets.detections = [det]
 
                 # Draw rectangle on the biggest countour
-                text.rectangle(depthRgb, (x, y), (x+w, y+h), size=2.5)
+                text.rectangle(depthRgb, (x, y), (x+w, y+h), size=2)
 
         detInQ.send(dets)
         imgFrame = dai.ImgFrame()
@@ -211,5 +212,6 @@ with dai.Device(pipeline) as device:
      
         if cv2.waitKey(1) == ord('q'):
             break
+        
 
-    print('Closing oak.')
+    print('Closing oak-d.')
