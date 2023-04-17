@@ -49,6 +49,7 @@ class PeopleCounter:
             print(f"left: {self.people_counter[2]}, right: {self.people_counter[3]}")
             print(f"Person moved {direction}")
 
+    
     def get_centroid(self, roi):
         x1 = roi.topLeft().x
         y1 = roi.topLeft().y
