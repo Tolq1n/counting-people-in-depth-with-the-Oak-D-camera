@@ -2,10 +2,9 @@
 import cv2
 import depthai as dai
 import numpy as np
-from depthai_sdk import Replay
 import argparse
 
-DETECTION_ROI = (200,100,1100,700)
+DETECTION_ROI = (300,100,900,700)
 #(200,100,1000,700) # Specific to `depth-person-counting-01` recording
 
 class TextHelper:
@@ -127,9 +126,9 @@ stereo.initialConfig.setMedianFilter(dai.StereoDepthProperties.MedianFilter.KERN
 stereo.setLeftRightCheck(True)
 # nodes.stereo.setSubpixel(True)
 
-stereo.initialConfig.setMedianFilter(dai.StereoDepthProperties.MedianFilter.KERNEL_7x7) # KERNEL_7x7 default
-stereo.setLeftRightCheck(True)
-# nodes.stereo.setSubpixel(True)
+# stereo.initialConfig.setMedianFilter(dai.StereoDepthProperties.MedianFilter.KERNEL_7x7) # KERNEL_7x7 default
+# stereo.setLeftRightCheck(True)
+# # nodes.stereo.setSubpixel(True)
 
 depthOut = pipeline.createXLinkOut()
 depthOut.setStreamName("depthOut")
@@ -139,7 +138,6 @@ leftCam.out.link(stereo.left)
 rightCam.out.link(stereo.right)
 
 with dai.Device(pipeline) as device:
-    #replay.createQueues(device)
 
     depthQ = device.getOutputQueue(name="depthOut", maxSize=4, blocking=False)
     trackletsQ = device.getOutputQueue(name="trackletsOut", maxSize=4, blocking=False)
