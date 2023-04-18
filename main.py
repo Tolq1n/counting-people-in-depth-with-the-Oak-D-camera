@@ -64,23 +64,23 @@ class PeopleCounter:
         return ((x2+x1)/2, (y2+y1)/2)
 
     def new_tracklets(self, tracklets):
-        for t in tracklets:
+        for tracklet in tracklets:
             # If new tracklet, save its centroid
-            if t.status == dai.Tracklet.TrackingStatus.NEW:
-                self.tracking[str(t.id)] = self.get_centroid(t.roi)
-                self.lost_cnt[str(t.id)] = 0
-            elif t.status == dai.Tracklet.TrackingStatus.TRACKED:
-                self.lost_cnt[str(t.id)] = 0
-            elif t.status == dai.Tracklet.TrackingStatus.LOST:
-                self.lost_cnt[str(t.id)] += 1
+            if tracklet.status == dai.Tracklet.TrackingStatus.NEW:
+                self.tracking[str(tracklet.id)] = self.get_centroid(tracklet.roi)
+                self.lost_cnt[str(tracklet.id)] = 0
+            elif tracklet.status == dai.Tracklet.TrackingStatus.TRACKED:
+                self.lost_cnt[str(tracklet.id)] = 0
+            elif tracklet.status == dai.Tracklet.TrackingStatus.LOST:
+                self.lost_cnt[str(tracklet.id)] += 1
                 # Tracklet has been lost for too long
-                if 10 < self.lost_cnt[str(t.id)]:
-                    self.lost_cnt[str(t.id)] = -999
-                    self.tracklet_removed(self.tracking[str(t.id)], self.get_centroid(t.roi))
-            elif t.status == dai.Tracklet.TrackingStatus.REMOVED:
-                if 0 <= self.lost_cnt[str(t.id)]:
-                    self.lost_cnt[str(t.id)] = -999
-                    self.tracklet_removed(self.tracking[str(t.id)], self.get_centroid(t.roi))
+                if 10 < self.lost_cnt[str(tracklet.id)]:
+                    self.lost_cnt[str(tracklet.id)] = -999
+                    self.tracklet_removed(self.tracking[str(tracklet.id)], self.get_centroid(tracklet.roi))
+            elif tracklet.status == dai.Tracklet.TrackingStatus.REMOVED:
+                if 0 <= self.lost_cnt[str(tracklet.id)]:
+                    self.lost_cnt[str(tracklet.id)] = -999
+                    self.tracklet_removed(self.tracking[str(tracklet.id)], self.get_centroid(tracklet.roi))
 
 pipeline = dai.Pipeline()
 
