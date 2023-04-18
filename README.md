@@ -1,6 +1,6 @@
 # Depth people counting
 
-This example demonstrates how to perform people counting from depth frames along a passageway. This approach could be useful for the privacy concerns of people counting applications.
+You can live count the traffic of people through this repository and example demonstrates how to perform people counting from depth frames along a passageway. This approach could be useful for the privacy concerns of people counting applications.
 
 This demo contains many hard-coded values specific to [depth-people-counting-01](./depth-people-counting-01) depthai recording.If you would wish to use this application in your own setup, these values would higly depend on the OAK camera installation, its FOV, and the passageway structure.
 
