@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+import argparse
 import cv2
 import depthai as dai
 import numpy as np
-import argparse
+
 
 DETECTION_ROI = (300,100,900,700)
 #(200,100,1000,700) # Specific to `depth-person-counting-01` recording
