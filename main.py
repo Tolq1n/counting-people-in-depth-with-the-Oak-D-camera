@@ -5,7 +5,7 @@ import depthai as dai
 import numpy as np
 
 
-DETECTION_ROI = (300,100,900,700)
+DETECTION_ROI = (100,200,1000,700)
 #(200,100,1000,700) # Specific to `depth-person-counting-01` recording
 
 class TextHelper:
