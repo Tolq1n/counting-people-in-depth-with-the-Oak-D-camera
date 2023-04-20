@@ -5,7 +5,7 @@ import depthai as dai
 import numpy as np
 
 
-DETECTION_ROI = (100,200,1000,700)
+DETECTION_ROI = (200,100,950,700)
 #(200,100,1000,700) # Specific to `depth-person-counting-01` recording
 
 class TextHelper:
@@ -219,3 +219,13 @@ with dai.Device(pipeline) as device:
         
 
     print('Closing oak-d.')
+
+
+
+
+# d86595064c7d
+# d86595063bb0
+# d86595063bb2
+# d86595063b77
+# d86595063b88
+# d86595063b87
