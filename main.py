@@ -125,7 +125,7 @@ stereo.initialConfig.setConfidenceThreshold(200)
 
 stereo.initialConfig.setMedianFilter(dai.StereoDepthProperties.MedianFilter.KERNEL_7x7) # KERNEL_7x7 default
 stereo.setLeftRightCheck(True)
-# nodes.stereo.setSubpixel(True)
+#nodes.stereo.setSubpixel(True)
 
 # stereo.initialConfig.setMedianFilter(dai.StereoDepthProperties.MedianFilter.KERNEL_7x7) # KERNEL_7x7 default
 # stereo.setLeftRightCheck(True)
