@@ -44,7 +44,7 @@ class PeopleCounter:
 
     def tracklet_removed(self, coords1, coords2):
         deltaX = coords2[0] - coords1[0]
-        # print('Delta X', deltaX)
+        print('Delta X', deltaX)
 
         if THRESH_DIST_DELTA < abs(deltaX):
             self.people_counter[2 if 0 > deltaX else 3] += 1
@@ -96,16 +96,16 @@ objectTracker.setTrackerType(dai.TrackerType.ZERO_TERM_COLOR_HISTOGRAM)
 objectTracker.setTrackerIdAssignmentPolicy(dai.TrackerIdAssignmentPolicy.UNIQUE_ID)
 
 # Linking
-xinFrame = pipeline.createXLinkIn()
-xinFrame.setStreamName("frameIn")
-xinFrame.out.link(objectTracker.inputDetectionFrame)
+#xinFrame = pipeline.createXLinkIn()
+#xinFrame.setStreamName("frameIn")
+#xinFrame.out.link(objectTracker.inputDetectionFrame)
 
 # Maybe we need to send the old frame here, not sure
-xinFrame.out.link(objectTracker.inputTrackerFrame)
+#xinFrame.out.link(objectTracker.inputTrackerFrame)
 
-xinDet = pipeline.createXLinkIn()
-xinDet.setStreamName("detIn")
-xinDet.out.link(objectTracker.inputDetections)
+# xinDet = pipeline.createXLinkIn()
+# xinDet.setStreamName("detIn")
+# xinDet.out.link(objectTracker.inputDetections)
 
 trackletsOut = pipeline.createXLinkOut()
 trackletsOut.setStreamName("trackletsOut")
@@ -143,8 +143,8 @@ with dai.Device(pipeline) as device:
     depthQ = device.getOutputQueue(name="depthOut", maxSize=4, blocking=False)
     trackletsQ = device.getOutputQueue(name="trackletsOut", maxSize=4, blocking=False)
 
-    detInQ = device.getInputQueue("detIn")
-    frameInQ = device.getInputQueue("frameIn")
+    #detInQ = device.getInputQueue("detIn")
+    #frameInQ = device.getInputQueue("frameIn")
 
     disparityMultiplier = 255 / stereo.initialConfig.getMaxDisparity()
 
@@ -173,7 +173,7 @@ with dai.Device(pipeline) as device:
         # cv2.imshow('blob', blob)
 
         edged = cv2.Canny(blob, 20, 80)
-        # cv2.imshow('Canny', edged)
+        #cv2.imshow('Canny', edged)
 
         contours, hierarchy = cv2.findContours(edged,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
 
@@ -200,18 +200,18 @@ with dai.Device(pipeline) as device:
                 # Draw rectangle on the biggest countour
                 text.rectangle(depthRgb, (x, y), (x+w, y+h), size=2)
 
-        detInQ.send(dets)
+        #detInQ.send(dets)
         imgFrame = dai.ImgFrame()
         imgFrame.setData(to_planar(depthRgb))
         imgFrame.setType(dai.RawImgFrame.Type.BGR888p)
         imgFrame.setWidth(depthRgb.shape[0])
         imgFrame.setHeight(depthRgb.shape[1])
-        frameInQ.send(imgFrame)
+        #frameInQ.send(imgFrame)
 
         text.rectangle(depthRgb, (DETECTION_ROI[0], DETECTION_ROI[1]), (DETECTION_ROI[2], DETECTION_ROI[3]))
         text.putText(depthRgb, str(counter), (20, 40))
 
-        cv2.imshow('depth', depthRgb)
+        cv2.imshow('depthX', depthRgb)
             
      
         if cv2.waitKey(1) == ord('q'):
