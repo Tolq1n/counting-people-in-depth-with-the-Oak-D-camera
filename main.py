@@ -170,10 +170,10 @@ with dai.Device(pipeline) as device:
         ret, thresh = cv2.threshold(cropped, 125, 145, cv2.THRESH_BINARY)
 
         blob = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (37,37)))
-        # cv2.imshow('blob', blob)
+        cv2.imshow('blob', blob)
 
         edged = cv2.Canny(blob, 20, 80)
-        #cv2.imshow('Canny', edged)
+        cv2.imshow('Canny', edged)
 
         contours, hierarchy = cv2.findContours(edged,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
 
@@ -181,13 +181,13 @@ with dai.Device(pipeline) as device:
         if len(contours) != 0:
             c = max(contours, key = cv2.contourArea)
             x,y,w,h = cv2.boundingRect(c)
-            # cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
+            cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
             x += DETECTION_ROI[0]
             y += DETECTION_ROI[1]
             area = w*h
 
             if 15000 < area:
-                # Send the detection to the device - ObjectTracker node
+                #Send the detection to the device - ObjectTracker node
                 det = dai.ImgDetection()
                 det.label = 1
                 det.confidence=1.0
@@ -197,7 +197,7 @@ with dai.Device(pipeline) as device:
                 det.ymax = y + h
                 dets.detections = [det]
 
-                # Draw rectangle on the biggest countour
+               # Draw rectangle on the biggest countour
                 text.rectangle(depthRgb, (x, y), (x+w, y+h), size=2)
 
         #detInQ.send(dets)
