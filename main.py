@@ -165,15 +165,15 @@ with dai.Device(pipeline) as device:
         # Crop only the corridor:
         
         cropped = depthFrame[DETECTION_ROI[1]:DETECTION_ROI[3], DETECTION_ROI[0]:DETECTION_ROI[2]]
-        cv2.imshow('Crop', cropped)
+        #cv2.imshow('Crop', cropped)
 
         ret, thresh = cv2.threshold(cropped, 125, 145, cv2.THRESH_BINARY)
 
         blob = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (37,37)))
-        cv2.imshow('blob', blob)
+        # cv2.imshow('blob', blob)
 
         edged = cv2.Canny(blob, 20, 80)
-        cv2.imshow('Canny', edged)
+        # cv2.imshow('Canny', edged)
 
         contours, hierarchy = cv2.findContours(edged,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
 
@@ -181,7 +181,7 @@ with dai.Device(pipeline) as device:
         if len(contours) != 0:
             c = max(contours, key = cv2.contourArea)
             x,y,w,h = cv2.boundingRect(c)
-            cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
+            #cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
             x += DETECTION_ROI[0]
             y += DETECTION_ROI[1]
             area = w*h
@@ -219,13 +219,3 @@ with dai.Device(pipeline) as device:
         
 
     print('Closing oak-d.')
-
-
-
-
-# d86595064c7d
-# d86595063bb0
-# d86595063bb2
-# d86595063b77
-# d86595063b88
-# d86595063b87
