@@ -181,7 +181,7 @@ with dai.Device(pipeline) as device:
         if len(contours) != 0:
             c = max(contours, key = cv2.contourArea)
             x,y,w,h = cv2.boundingRect(c)
-            #cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
+            cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
             x += DETECTION_ROI[0]
             y += DETECTION_ROI[1]
             area = w*h
