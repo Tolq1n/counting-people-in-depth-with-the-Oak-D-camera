@@ -3,7 +3,33 @@ import argparse
 import cv2
 import depthai as dai
 import numpy as np
+import socketserver
+import threading
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from io import BytesIO
+from socketserver import ThreadingMixIn
+from time import sleep
+import depthai as dai
+import numpy as np
+import cv2
+import argparse
+import blobconverter
 
+import socket
+def get_ip():
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.254.254.254', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+            print(f"Serving at: {IP}")
+        return IP
 
 DETECTION_ROI = (200,100,950,700)
 #(200,100,1000,700) # Specific to `depth-person-counting-01` recording
@@ -21,7 +47,40 @@ class TextHelper:
     def rectangle(self, frame, topLeft,bottomRight, size=1.):
         cv2.rectangle(frame, topLeft, bottomRight, self.bg_color, int(size*4))
         cv2.rectangle(frame, topLeft, bottomRight, self.color, int(size))
+        
         return frame
+    
+HTTP_SERVER_PORT = 8000
+
+                
+# HTTPServer MJPEG
+class VideoStreamHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=--jpgboundary')
+        self.end_headers()
+        while True:
+            sleep(0.1)
+            if hasattr(self.server, 'frametosend'):
+                ok, encoded = cv2.imencode('.jpg', self.server.frametosend)
+                self.wfile.write("--jpgboundary".encode())
+                self.send_header('Content-type', 'image/jpeg')
+                self.send_header('Content-length', str(len(encoded)))
+                self.end_headers()
+                self.wfile.write(encoded)
+                self.end_headers()
+   
+             
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
+    pass
+
+# start MJPEG HTTP Server
+server_HTTP = ThreadedHTTPServer((get_ip(), HTTP_SERVER_PORT), VideoStreamHandler)
+print("Starting MJPEG HTTP Server...")
+th2 = threading.Thread(target=server_HTTP.serve_forever)
+th2.daemon = True
+th2.start()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--path', default='depth-people-counting-01', type=str, help="Path to depthai-recording")
@@ -95,17 +154,6 @@ objectTracker.setTrackerType(dai.TrackerType.ZERO_TERM_COLOR_HISTOGRAM)
 # take the smallest ID when new object is tracked, possible options: SMALLEST_ID, UNIQUE_ID
 objectTracker.setTrackerIdAssignmentPolicy(dai.TrackerIdAssignmentPolicy.UNIQUE_ID)
 
-# Linking
-#xinFrame = pipeline.createXLinkIn()
-#xinFrame.setStreamName("frameIn")
-#xinFrame.out.link(objectTracker.inputDetectionFrame)
-
-# Maybe we need to send the old frame here, not sure
-#xinFrame.out.link(objectTracker.inputTrackerFrame)
-
-# xinDet = pipeline.createXLinkIn()
-# xinDet.setStreamName("detIn")
-# xinDet.out.link(objectTracker.inputDetections)
 
 trackletsOut = pipeline.createXLinkOut()
 trackletsOut.setStreamName("trackletsOut")
@@ -212,10 +260,11 @@ with dai.Device(pipeline) as device:
         text.putText(depthRgb, str(counter), (20, 40))
 
         cv2.imshow('depthX', depthRgb)
+        server_HTTP.frametosend = depthRgb
             
      
         if cv2.waitKey(1) == ord('q'):
+            
             break
         
-
     print('Closing oak-d.')
