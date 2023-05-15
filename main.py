@@ -28,7 +28,7 @@ def get_ip():
             IP = '127.0.0.1'
         finally:
             s.close()
-            print(f"Serving at: {IP}")
+            print(f"Serving at: {IP}:8000")
         return IP
 
 DETECTION_ROI = (200,100,950,700)
