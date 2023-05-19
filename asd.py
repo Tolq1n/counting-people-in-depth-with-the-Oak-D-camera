@@ -3,18 +3,16 @@ import argparse
 import cv2
 import depthai as dai
 import numpy as np
-import socketserver
 import threading
-import time
+import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from io import BytesIO
 from socketserver import ThreadingMixIn
 from time import sleep
 import depthai as dai
 import numpy as np
 import cv2
 import argparse
-import blobconverter
+
 
 import socket
 def get_ip():
@@ -31,9 +29,6 @@ def get_ip():
             print(f"Serving at: {IP}:8000")
         return IP
 
-DETECTION_ROI = (200, 100, 900, 500)
-#(200,100,1000,700) # Specific to `depth-person-counting-01` recording
-
 class TextHelper:
     def __init__(self) -> None:
         self.bg_color = (0, 0, 0)
@@ -46,7 +41,7 @@ class TextHelper:
         return frame
     def rectangle(self, frame, topLeft,bottomRight, size=1.):
         cv2.rectangle(frame, topLeft, bottomRight, self.bg_color, int(size*4))
-        cv2.rectangle(frame, topLeft, bottomRight, self.color, int(size))
+        cv2.rectangle(frame, topLeft, bottomRight, self.color, int(size))       
         
         return frame
     
@@ -89,48 +84,56 @@ args = parser.parse_args()
 def to_planar(arr: np.ndarray) -> list:
     return arr.transpose(2, 0, 1).flatten()
 
-THRESH_DIST_DELTA = 0.5
-THRESH_DIST_DELTAY = 0.2
 
+DETECTION_ROI = (200,300,1000,700)
+
+CENTROID_ROI = (400, 600)
+#(200,100,1000,700) # Specific to `depth-person-counting-01` recording
+#(10,10, 1270, 715)
+
+THRESH_DIST_DELTA = 0.5
 class PeopleCounter:
     def __init__(self):
         self.tracking = {}
         self.lost_cnt = {}
         self.people_counter = [0,0,0,0] # Up, Down, Left, Right
-        self.total = 0
-        self.score = 0
+        
+        
 
     def __str__(self) -> str:
-        
         return f"Left: {self.people_counter[2]}, Right: {self.people_counter[3]}, Up: {self.people_counter[0]}, Down: {self.people_counter[1]}"
 
     def tracklet_removed(self, coords1, coords2):
         deltaX = coords2[0] - coords1[0]
-        print('deltaX', deltaX)
+        print(deltaX)
         deltaY = coords2[1] - coords1[1]
-        print('deltaY', deltaY)
+        print(deltaY)
+    
+        
+        
+        # if abs(deltaX) > abs(deltaY) and abs(deltaX) > THRESH_DIST_DELTA:
+        #     self.people_counter[2 if 0 > deltaX else 3] += 1
+
+        # elif abs(deltaY) > abs(deltaX) and abs(deltaY) > THRESH_DIST_DELTA:
+        #     self.people_counter[1 if 0 > deltaY else 0] += 1
+            
+            
+    
 
         if THRESH_DIST_DELTA < abs(deltaX):
             self.people_counter[2 if 0 > deltaX else 3] += 1
-            print(f"Left: {self.people_counter[2]}, Right: {self.people_counter[3]}, Up: {self.people_counter[0]}, Down: {self.people_counter[1]}")
-            
 
-        if abs(deltaY) > abs(deltaX) and abs(deltaY) > THRESH_DIST_DELTAY:
+        if THRESH_DIST_DELTA < abs(deltaY):
             self.people_counter[0 if 0 > deltaY else 1] += 1
-            print(f"Left: {self.people_counter[2]}, Right: {self.people_counter[3]}, Up: {self.people_counter[0]}, Down: {self.people_counter[1]}")
-
-        #DETECTION_ROI = (200, 100, 900, 500)
-
-        
-        
+            
     
     def get_centroid(self, roi):
         x1 = roi.topLeft().x
         y1 = roi.topLeft().y
         x2 = roi.bottomRight().x
         y2 = roi.bottomRight().y
-        # print((x2+x1)/2, (y2+y1)/2)
         return ((x2+x1)/2, (y2+y1)/2)
+        #((x2+x1)/2, (y2+y1)/2)
 
     def new_tracklets(self, tracklets):
         for tracklet in tracklets:
@@ -164,16 +167,6 @@ objectTracker.setTrackerType(dai.TrackerType.ZERO_TERM_COLOR_HISTOGRAM)
 # take the smallest ID when new object is tracked, possible options: SMALLEST_ID, UNIQUE_ID
 objectTracker.setTrackerIdAssignmentPolicy(dai.TrackerIdAssignmentPolicy.UNIQUE_ID)
 
-xinFrame = pipeline.createXLinkIn()
-xinFrame.setStreamName("frameIn")
-xinFrame.out.link(objectTracker.inputDetectionFrame)
-
-# Maybe we need to send the old frame here, not sure
-xinFrame.out.link(objectTracker.inputTrackerFrame)
-
-xinDet = pipeline.createXLinkIn()
-xinDet.setStreamName("detIn")
-xinDet.out.link(objectTracker.inputDetections)
 
 trackletsOut = pipeline.createXLinkOut()
 trackletsOut.setStreamName("trackletsOut")
@@ -211,11 +204,8 @@ with dai.Device(pipeline) as device:
     depthQ = device.getOutputQueue(name="depthOut", maxSize=4, blocking=False)
     trackletsQ = device.getOutputQueue(name="trackletsOut", maxSize=4, blocking=False)
 
-    detInQ = device.getInputQueue("detIn")
-    frameInQ = device.getInputQueue("frameIn")
 
     disparityMultiplier = 255 / stereo.initialConfig.getMaxDisparity()
-
     text = TextHelper()
     counter = PeopleCounter()
 
@@ -249,7 +239,7 @@ with dai.Device(pipeline) as device:
         if len(contours) != 0:
             c = max(contours, key = cv2.contourArea)
             x,y,w,h = cv2.boundingRect(c)
-            cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
+            #cv2.imshow('Rect', text.rectangle(blob, (x,y), (x+w, y+h)))
             x += DETECTION_ROI[0]
             y += DETECTION_ROI[1]
             area = w*h
@@ -265,16 +255,16 @@ with dai.Device(pipeline) as device:
                 det.ymax = y + h
                 dets.detections = [det]
 
-               # Draw rectangle on the biggest countour
+               # Draw rectangle on the biggest contour
                 text.rectangle(depthRgb, (x, y), (x+w, y+h), size=2)
 
-        detInQ.send(dets)
+        #detInQ.send(dets)
         imgFrame = dai.ImgFrame()
         imgFrame.setData(to_planar(depthRgb))
         imgFrame.setType(dai.RawImgFrame.Type.BGR888p)
         imgFrame.setWidth(depthRgb.shape[0])
         imgFrame.setHeight(depthRgb.shape[1])
-        frameInQ.send(imgFrame)
+        #frameInQ.send(imgFrame)
 
         text.rectangle(depthRgb, (DETECTION_ROI[0], DETECTION_ROI[1]), (DETECTION_ROI[2], DETECTION_ROI[3]))
         text.putText(depthRgb, str(counter), (20, 40))
